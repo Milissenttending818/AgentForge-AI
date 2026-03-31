@@ -1,0 +1,37 @@
+# Node.js dependencies
+node_modules/
+dist/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Python environment
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env
+.pytest_cache/
+
+# Databases & Secrets
+*.db
+*.sqlite
+.env
+*.log
+startup_log.txt
+server.log
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Project-specific
+backend/data/textbook.pdf
+frontend/startup_log.txt
+HISTORY.md
+SPECIFICATION.md
