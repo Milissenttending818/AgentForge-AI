@@ -1,73 +1,30 @@
-import React, { memo, useState } from 'react';
+import { memo } from 'react';
 import { Handle, Position } from 'reactflow';
-import axios from 'axios';
+import { Wrench } from 'lucide-react';
+import { Card } from "@/components/ui/card";
 
-const ToolNode = ({ data }: { data: any }) => {
-  const [uploading, setUploading] = useState(false);
-  const [status, setStatus] = useState('');
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    setUploading(true);
-    setStatus('Uploading...');
-
-    try {
-      await axios.post('http://127.0.0.1:8000/upload-doc', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      setStatus('✅ Success');
-      if (data.onChange) data.onChange(file.name, 'filename');
-    } catch (err) {
-      setStatus('❌ Error');
-      console.error(err);
-    } finally {
-      setUploading(false);
-    }
-  };
-
+const ToolNode = ({ data, selected }: { data: any, selected: boolean }) => {
   return (
-    <div style={{ background: '#f8fafc', border: '2px solid #f59e0b', borderRadius: '8px', padding: '12px', width: '220px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
-      <div style={{ fontWeight: 'bold', borderBottom: '1px solid #e2e8f0', marginBottom: '10px', paddingBottom: '6px', color: '#b45309', fontSize: '14px' }}>🛠️ Tool Node</div>
-      
-      <div style={{ marginBottom: '10px' }}>
-        <label style={{ fontSize: '11px', fontWeight: '600', color: '#64748b', display: 'block', marginBottom: '4px' }}>TOOL TYPE</label>
-        <select 
-          style={{ width: '100%', fontSize: '12px', padding: '4px', borderRadius: '4px', border: '1px solid #cbd5e1' }} 
-          value={data.toolType || 'PDF RAG'} 
-          onChange={(e) => data.onChange(e.target.value, 'toolType')}
-        >
-          <option value="PDF RAG">📂 PDF RAG</option>
-          <option value="Twilio WhatsApp">💬 Twilio WhatsApp</option>
-        </select>
+    <Card 
+      style={{ backgroundColor: '#1a1a1a' }}
+      className={`w-[140px] p-3 shadow-2xl border-2 transition-all opacity-100 ${selected ? 'border-indigo-500 shadow-indigo-500/20' : 'border-border'}`}
+    >
+      <div className="flex flex-col items-center gap-2">
+        <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+          <Wrench size={20} />
+        </div>
+        <div className="text-center">
+          <p className="text-[11px] font-bold uppercase tracking-wider truncate w-[110px] text-white">{data.toolType || 'Tool'}</p>
+          <p className="text-[9px] text-muted-foreground font-medium mt-0.5">External Integration</p>
+        </div>
       </div>
 
-      {data.toolType === 'PDF RAG' && (
-        <div style={{ background: '#fffbeb', padding: '8px', borderRadius: '4px', border: '1px dashed #fcd34d' }}>
-          <label style={{ fontSize: '11px', fontWeight: '600', color: '#b45309', display: 'block', marginBottom: '4px' }}>UPLOAD PDF</label>
-          <input 
-            type="file" 
-            accept=".pdf"
-            onChange={handleFileChange}
-            style={{ fontSize: '10px', width: '100%' }}
-            disabled={uploading}
-          />
-          {status && <div style={{ fontSize: '10px', marginTop: '4px', fontWeight: 'bold' }}>{status}</div>}
-        </div>
-      )}
-
-      {data.toolType === 'Twilio WhatsApp' && (
-        <div style={{ fontSize: '11px', color: '#64748b', fontStyle: 'italic' }}>
-          Uses .env configured Twilio credentials.
-        </div>
-      )}
-
-      <Handle type="source" position={Position.Right} id="agent-output" style={{ background: '#f59e0b', width: '8px', height: '8px' }} />
-    </div>
+      <Handle 
+        type="source" 
+        position={Position.Right} 
+        className="!w-2 !h-2 !bg-indigo-500 !border-2 !border-[#1a1a1a]"
+      />
+    </Card>
   );
 };
 

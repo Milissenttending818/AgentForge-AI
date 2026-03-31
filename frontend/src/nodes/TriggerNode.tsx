@@ -1,36 +1,33 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Handle, Position } from 'reactflow';
+import { Zap } from 'lucide-react';
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
-const TriggerNode = ({ data }: { data: any }) => {
+const TriggerNode = ({ data, selected }: { data: any, selected: boolean }) => {
   return (
-    <div style={{ background: '#faf5ff', border: '2px solid #9333ea', borderRadius: '8px', padding: '12px', width: '220px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
-      <div style={{ fontWeight: 'bold', borderBottom: '1px solid #d8b4fe', marginBottom: '10px', paddingBottom: '4px', color: '#9333ea', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span>⚡</span> Trigger Node
-      </div>
-      
-      <div style={{ marginBottom: '8px' }}>
-        <label style={{ fontSize: '11px', display: 'block', color: '#6b7280', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.025em' }}>Trigger Type</label>
-        <select 
-          style={{ width: '100%', fontSize: '12px', padding: '6px', borderRadius: '4px', border: '1px solid #e9d5ff', outline: 'none', background: 'white' }} 
-          value={data.triggerType || 'webhook'} 
-          onChange={(e) => data.onChange(e.target.value, 'triggerType')}
-        >
-          <option value="webhook">Webhook (POST)</option>
-          <option value="schedule">Schedule (CRON)</option>
-        </select>
-      </div>
-
-      {data.triggerType === 'webhook' && (
-        <div style={{ marginTop: '10px', padding: '8px', background: '#f3e8ff', borderRadius: '4px' }}>
-          <div style={{ fontSize: '10px', color: '#7e22ce', fontWeight: '600' }}>WEBHOOK URL</div>
-          <div style={{ fontSize: '9px', color: '#9333ea', wordBreak: 'break-all', marginTop: '4px', fontFamily: 'monospace' }}>
-            http://localhost:8000/webhook/{"{workflow_id}"}
-          </div>
+    <Card 
+      style={{ backgroundColor: '#1a1a1a' }}
+      className={`w-[140px] p-3 shadow-2xl border-2 transition-all opacity-100 ${selected ? 'border-orange-500 shadow-orange-500/20' : 'border-border'}`}
+    >
+      <div className="flex flex-col items-center gap-2">
+        <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500">
+          <Zap size={20} fill="currentColor" />
         </div>
-      )}
+        <div className="text-center">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-white">Trigger</p>
+          <Badge variant="secondary" className="text-[9px] py-0 px-1 mt-1 font-medium bg-orange-500/10 text-orange-500 border-none">
+            {data.triggerType === 'webhook' ? 'Webhook' : 'Cron'}
+          </Badge>
+        </div>
+      </div>
 
-      <Handle type="source" position={Position.Right} id="trigger-output" style={{ background: '#9333ea', width: '8px', height: '8px' }} />
-    </div>
+      <Handle 
+        type="source" 
+        position={Position.Right} 
+        className="!w-2 !h-2 !bg-orange-500 !border-2 !border-[#1a1a1a]"
+      />
+    </Card>
   );
 };
 
