@@ -1,10 +1,56 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <title>AgentForge AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root { background: #0a0a0a; color: #ffffff; }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', sans-serif;
+        background: #0a0a0a;
+        color: #ffffff;
+        -webkit-font-smoothing: antialiased;
+      }
+      * { box-sizing: border-box; }
+      #root { width: 100vw; height: 100vh; overflow: hidden; }
+      .react-flow__background { background: #0a0a0a !important; }
+      .react-flow__edge-path { 
+        stroke: #475569; 
+        stroke-width: 2; 
+        transition: stroke 0.3s, stroke-width 0.3s;
+      }
+      .react-flow__edge.animated .react-flow__edge-path {
+        stroke: #38bdf8;
+        stroke-width: 3;
+        stroke-dasharray: 5;
+        animation: dashdraw 0.5s linear infinite;
+      }
+      @keyframes dashdraw {
+        from { stroke-dashoffset: 10; }
+        to { stroke-dashoffset: 0; }
+      }
+      .react-flow__controls {
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        border: none;
+      }
+      .react-flow__controls-button {
+        background: #1e293b !important;
+        border-bottom: 1px solid #334155 !important;
+        fill: #94a3b8 !important;
+        opacity: 1 !important;
+      }
+      .react-flow__controls-button:hover {
+        background: #334155 !important;
+        fill: #ffffff !important;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
