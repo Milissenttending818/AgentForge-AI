@@ -14,7 +14,7 @@ AgentForge AI is a low-code, visual workflow builder designed for the orchestrat
 
 | Visual Canvas Designer | Execution History and Logs |
 | :---: | :---: |
-| ![Canvas Placeholder](https://via.placeholder.com/800x450/1e293b/f8fafc?text=AgentForge+Canvas+Interface) | ![Logs Placeholder](https://via.placeholder.com/800x450/0f172a/38bdf8?text=Real-time+Execution+Logs) |
+| ![Canvas Designer](./assets/interface.png) | ![Workflow Designer](./assets/workflow.png) |
 
 ---
 
