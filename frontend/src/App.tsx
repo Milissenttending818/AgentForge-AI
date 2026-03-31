@@ -1,315 +1,272 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import ReactFlow, { 
-  addEdge, 
-  Background, 
-  Controls, 
-  applyEdgeChanges, 
-  applyNodeChanges,
-  ReactFlowProvider,
+  addEdge, Background, Controls, applyEdgeChanges, applyNodeChanges, ReactFlowProvider,
 } from 'reactflow';
-import type {
-  Connection,
-  Edge,
-  Node,
-  OnNodesChange,
-  OnEdgesChange,
-  OnConnect,
-} from 'reactflow';
+import type { Connection, Edge, Node, OnNodesChange, OnEdgesChange, OnConnect } from 'reactflow';
 import 'reactflow/dist/style.css';
 import axios from 'axios';
+
+// Shadcn UI Components
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+// Icons
+import { 
+  Zap, Bot, CheckCircle2, Wrench, Play, Save, Database, Settings, HelpCircle, Layers, Share2,
+  ChevronRight, History, Bug, StepForward, ShieldCheck, Activity, Package
+} from 'lucide-react';
 
 import AgentNode from './nodes/AgentNode';
 import TaskNode from './nodes/TaskNode';
 import ToolNode from './nodes/ToolNode';
 import TriggerNode from './nodes/TriggerNode';
+import ApprovalNode from './nodes/ApprovalNode';
+import RouterNode from './nodes/RouterNode';
+import ExecutionTerminal from './components/ExecutionTerminal';
+import { CustomIcons } from './components/Icons';
 
-const nodeTypes = {
-  agent: AgentNode,
-  task: TaskNode,
-  tool: ToolNode,
-  trigger: TriggerNode,
-};
-
-const initialNodes: Node[] = [];
-const initialEdges: Edge[] = [];
-
-let id = 0;
-const getId = () => `node_${Date.now()}_${id++}`;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const App = () => {
+  const nodeTypes = useMemo(() => ({
+    agent: AgentNode,
+    task: TaskNode,
+    tool: ToolNode,
+    trigger: TriggerNode,
+    approval: ApprovalNode,
+    router: RouterNode,
+  }), []);
+
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const [nodes, setNodes] = useState<Node[]>(initialNodes);
-  const [edges, setEdges] = useState<Edge[]>(initialEdges);
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
   const [workflowName, setWorkflowName] = useState('Untitled Workflow');
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
-  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const [executionId, setExecutionId] = useState<string | null>(null);
-  const [executionStatus, setExecutionStatus] = useState<string | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [debugMode, setDebugMode] = useState(false);
+  const [versionCount, setVersionCount] = useState(1);
 
-  const onNodesChange: OnNodesChange = useCallback(
-    (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
-    []
-  );
-  const onEdgesChange: OnEdgesChange = useCallback(
-    (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
-    []
-  );
-  const onConnect: OnConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    []
-  );
+  const onNodesChange: OnNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
+  const onEdgesChange: OnEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
+  const onConnect: OnConnect = useCallback((params: Connection) => setEdges((eds) => addEdge({ ...params, animated: true, type: 'smoothstep', style: { stroke: '#475569', strokeWidth: 2 } }, eds)), []);
 
   const onNodeDataChange = useCallback((nodeId: string, value: string, field: string) => {
-    setNodes((nds) =>
-      nds.map((node) => {
-        if (node.id === nodeId) {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              [field]: value,
-            },
-          };
-        }
-        return node;
-      })
-    );
+    setNodes((nds) => nds.map((node) => node.id === nodeId ? { ...node, data: { ...node.data, [field]: value } } : node));
   }, []);
 
-  const onDragOver = useCallback((event: React.DragEvent) => {
+  const onDrop = useCallback((event: React.DragEvent) => {
     event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-  }, []);
-
-  const onDrop = useCallback(
-    (event: React.DragEvent) => {
-      event.preventDefault();
-      const type = event.dataTransfer.getData('application/reactflow');
-      if (!type) return;
-
-      const position = reactFlowInstance.screenToFlowPosition({
-        x: event.clientX,
-        y: event.clientY,
-      });
-
-      const newNodeId = getId();
-      const newNode: Node = {
-        id: newNodeId,
-        type,
-        position,
-        data: { 
-          onChange: (val: string, field: string) => onNodeDataChange(newNodeId, val, field) 
-        },
-      };
-
-      setNodes((nds) => nds.concat(newNode));
-    },
-    [reactFlowInstance, onNodeDataChange]
-  );
+    const type = event.dataTransfer.getData('application/reactflow');
+    if (!type || !reactFlowInstance) return;
+    const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY });
+    const newNodeId = `node_${Date.now()}`;
+    setNodes((nds) => nds.concat({ 
+      id: newNodeId, 
+      type, 
+      position, 
+      data: { onChange: (val: string, field: string) => onNodeDataChange(newNodeId, val, field) } 
+    }));
+  }, [reactFlowInstance, onNodeDataChange]);
 
   const saveWorkflow = async () => {
     try {
-      const payload = {
-        name: workflowName,
-        nodes: nodes.map(n => ({ id: n.id, type: n.type, data: n.data, position: n.position })),
-        edges: edges.map(e => ({ id: e.id, source: e.source, target: e.target }))
-      };
-      await axios.post('http://localhost:8000/workflows', payload);
-      alert('Workflow saved successfully!');
-    } catch (error) {
-      console.error('Save error:', error);
-      alert('Failed to save workflow.');
-    }
+      const payload = { name: workflowName, nodes: nodes.map(n => ({ id: n.id, type: n.type, data: n.data, position: n.position })), edges: edges.map(e => ({ id: e.id, source: e.source, target: e.target })) };
+      const res = await axios.post(`${API_BASE_URL}/workflows`, payload);
+      setVersionCount(res.data.version || versionCount + 1);
+    } catch (error) { console.error(error); }
   };
 
   const runWorkflow = async () => {
-    if (nodes.length === 0) return alert("Please add some nodes first!");
-
+    if (nodes.length === 0) return;
     setLoading(true);
-    setResult(null);
-    setExecutionStatus('Starting...');
-
-    const payload = {
-      nodes: nodes.map(n => ({ id: n.id, type: n.type, data: n.data })),
-      edges: edges.map(e => ({ id: e.id, source: e.source, target: e.target }))
-    };
-
     try {
-      const response = await axios.post('http://localhost:8000/run-workflow', payload);
-      setExecutionId(response.data.execution_id);
-      setExecutionStatus('running');
-    } catch (error) {
-      setLoading(false);
-      setExecutionStatus('Error starting workflow');
-    }
+      const response = await axios.post(`${API_BASE_URL}/run-workflow`, {
+        nodes: nodes.map(n => ({ id: n.id, type: n.type, data: n.data })),
+        edges: edges.map(e => ({ id: e.id, source: e.source, target: e.target })),
+        debug: debugMode
+      });
+      setExecutionId(response.data.job_id);
+    } catch (error) { setLoading(false); }
   };
 
-  // Poll for execution status
-  useEffect(() => {
-    let interval: any;
-    if (executionId && executionStatus === 'running') {
-      interval = setInterval(async () => {
-        try {
-          const response = await axios.get(`http://localhost:8000/executions/${executionId}`);
-          if (response.data.status !== 'running' && response.data.status !== 'pending') {
-            setExecutionStatus(response.data.status);
-            setResult(response.data.result?.final_output || response.data.logs);
-            setLoading(false);
-            setExecutionId(null);
-            clearInterval(interval);
-          }
-        } catch (e) {
-          console.error('Polling error', e);
-        }
-      }, 2000);
-    }
-    return () => clearInterval(interval);
-  }, [executionId, executionStatus]);
-
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append('file', file);
-    setUploading(true);
-    try {
-      await axios.post('http://localhost:8000/upload-doc', formData);
-      setUploadStatus(`Success: ${file.name} uploaded.`);
-    } catch (error) {
-      setUploadStatus('Upload failed.');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const loadDemo = (type: 'competitive' | 'whatsapp') => {
-    // simplified for brevity in this refactor
-    const toolId = 'node_0';
-    const agentId = 'node_1';
-    const taskId = 'node_2';
-    
-    const demoNodes: Node[] = [
-      { id: toolId, type: 'tool', position: { x: 50, y: 150 }, data: { toolType: type === 'competitive' ? 'PDF RAG' : 'Twilio WhatsApp', onChange: (val: string, field: string) => onNodeDataChange(toolId, val, field) } },
-      { id: agentId, type: 'agent', position: { x: 350, y: 150 }, data: { role: 'Agent', goal: 'Help', backstory: 'Assistant', onChange: (val: string, field: string) => onNodeDataChange(agentId, val, field) } },
-      { id: taskId, type: 'task', position: { x: 650, y: 150 }, data: { description: 'Do task', expectedOutput: 'Done', onChange: (val: string, field: string) => onNodeDataChange(taskId, val, field) } },
-    ];
-    setNodes(demoNodes);
-    setEdges([
-      { id: 'e1', source: toolId, target: agentId },
-      { id: 'e2', source: agentId, target: taskId }
-    ]);
-  };
+  const selectedNode = nodes.find(n => n.id === selectedNodeId);
 
   return (
-    <div style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column', fontFamily: 'sans-serif', background: '#f8fafc' }}>
-      {/* Header */}
-      <div style={{ padding: '12px 24px', background: '#0f172a', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold', letterSpacing: '-0.025em' }}>AgentForge <span style={{ color: '#38bdf8' }}>AI</span></h1>
-          <input 
-            value={workflowName}
-            onChange={(e) => setWorkflowName(e.target.value)}
-            style={{ background: '#1e293b', border: '1px solid #334155', color: 'white', padding: '6px 12px', borderRadius: '4px', fontSize: '14px', width: '250px' }}
-          />
+    <div className="flex h-screen w-screen bg-background text-foreground font-sans antialiased overflow-hidden">
+      
+      {/* 1. Navigation Sidebar */}
+      <aside className="w-16 flex flex-col items-center py-6 gap-8 border-r border-border bg-card z-20">
+        <div className="p-2 bg-primary/10 rounded-xl text-primary mb-4">
+          <Activity size={24} strokeWidth={2.5} />
         </div>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <button onClick={() => loadDemo('competitive')} style={{ padding: '8px 14px', background: '#334155', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px' }}>Load Demo</button>
-          <button onClick={saveWorkflow} style={{ padding: '8px 14px', background: '#334155', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px' }}>Save Workflow</button>
-          <button 
-            onClick={runWorkflow} 
-            disabled={loading}
-            style={{ padding: '8px 20px', background: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', transition: 'background 0.2s' }}
-          >
-            {loading ? `Running (${executionStatus})...` : 'Execute Workflow'}
-          </button>
-        </div>
-      </div>
+        
+        <TooltipProvider delay={0}>
+          {[
+            { icon: Layers, label: "Workflows", active: true },
+            { icon: Database, label: "Variables" },
+            { icon: Settings, label: "Settings" },
+            { icon: HelpCircle, label: "Docs" }
+          ].map((item, i) => (
+            <Tooltip key={i}>
+              <TooltipTrigger asChild>
+                <div className={`p-2 rounded-md cursor-pointer transition-colors ${item.active ? "text-primary bg-primary/5" : "text-muted-foreground hover:bg-muted"}`}>
+                  <item.icon size={20} />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right"><p>{item.label}</p></TooltipContent>
+            </Tooltip>
+          ))}
+        </TooltipProvider>
 
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        {/* Sidebar */}
-        <aside style={{ width: '300px', borderRight: '1px solid #e2e8f0', padding: '24px', background: 'white', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div className="mt-auto flex flex-col items-center gap-4">
+          <Badge variant="outline" className="text-[10px] py-0 px-1 opacity-50 uppercase tracking-widest">Alpha</Badge>
+          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-[10px] font-bold text-primary-foreground shadow-lg">SR</div>
+        </div>
+      </aside>
+
+      <div className="flex-1 flex flex-col min-h-0 relative">
+        
+        {/* 2. Header */}
+        <header className="h-14 shrink-0 flex items-center justify-between px-6 border-b border-border bg-background z-10">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-sm tracking-tight">AgentForge</span>
+              <ChevronRight size={14} className="text-muted-foreground" />
+              <Input 
+                value={workflowName} 
+                onChange={(e) => setWorkflowName(e.target.value)} 
+                className="h-8 border-none bg-transparent hover:bg-muted focus-visible:ring-0 font-medium text-sm w-48 transition-colors"
+              />
+            </div>
+            <Badge variant="secondary" className="gap-1 bg-muted/50 text-muted-foreground border-none">
+              <History size={12} /> v{versionCount}
+            </Badge>
+          </div>
           
-          <section>
-            <div style={{ fontWeight: '700', marginBottom: '12px', color: '#64748b', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Document Assets</div>
-            <div style={{ padding: '12px', background: '#f1f5f9', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
-              <input type="file" accept=".pdf" onChange={handleFileUpload} style={{ fontSize: '12px', width: '100%' }} />
-              {uploading && <div style={{ fontSize: '11px', color: '#2563eb', marginTop: '8px' }}>Uploading...</div>}
-              {uploadStatus && <div style={{ fontSize: '11px', color: '#059669', marginTop: '8px' }}>{uploadStatus}</div>}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center bg-muted/30 rounded-lg p-1 border border-border">
+              <Button 
+                variant={debugMode ? "default" : "ghost"} 
+                size="sm" 
+                onClick={() => setDebugMode(!debugMode)}
+                className={`h-7 px-3 gap-2 text-[11px] font-bold uppercase tracking-wider ${debugMode ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}`}
+              >
+                <Bug size={14} /> {debugMode ? "Debug ON" : "Debug Off"}
+              </Button>
             </div>
-          </section>
 
-          <section>
-            <div style={{ fontWeight: '700', marginBottom: '12px', color: '#64748b', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Node Palette</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div 
-                style={{ padding: '12px', border: '1.5px solid #9333ea', cursor: 'grab', background: '#faf5ff', borderRadius: '8px', fontSize: '13px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }} 
-                onDragStart={(event) => event.dataTransfer.setData('application/reactflow', 'trigger')} 
-                draggable
-              >
-                <span style={{ fontSize: '16px' }}>⚡</span> Trigger Node
-              </div>
-              <div 
-                style={{ padding: '12px', border: '1.5px solid #2563eb', cursor: 'grab', background: 'white', borderRadius: '8px', fontSize: '13px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }} 
-                onDragStart={(event) => event.dataTransfer.setData('application/reactflow', 'agent')} 
-                draggable
-              >
-                <span style={{ fontSize: '16px' }}>🤖</span> Agent Node
-              </div>
-              <div 
-                style={{ padding: '12px', border: '1.5px solid #10b981', cursor: 'grab', background: 'white', borderRadius: '8px', fontSize: '13px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }} 
-                onDragStart={(event) => event.dataTransfer.setData('application/reactflow', 'task')} 
-                draggable
-              >
-                <span style={{ fontSize: '16px' }}>✅</span> Task Node
-              </div>
-              <div 
-                style={{ padding: '12px', border: '1.5px solid #f59e0b', cursor: 'grab', background: 'white', borderRadius: '8px', fontSize: '13px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }} 
-                onDragStart={(event) => event.dataTransfer.setData('application/reactflow', 'tool')} 
-                draggable
-              >
-                <span style={{ fontSize: '16px' }}>🛠️</span> Tool Node
-              </div>
-            </div>
-          </section>
+            <Separator orientation="vertical" className="h-6 mx-1" />
 
-          {result && (
-            <section style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: '200px' }}>
-              <div style={{ fontWeight: '700', marginBottom: '12px', color: '#64748b', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Execution Output</div>
-              <div style={{ flex: 1, fontSize: '12px', overflow: 'auto', background: '#0f172a', color: '#f8fafc', padding: '16px', borderRadius: '8px', whiteSpace: 'pre-wrap', lineHeight: '1.5', fontFamily: 'monospace' }}>
-                {result}
-              </div>
-            </section>
-          )}
-        </aside>
+            <Button variant="outline" size="sm" onClick={saveWorkflow} className="h-8 font-semibold">
+              <Save size={14} className="mr-2" /> Save
+            </Button>
+            <Button size="sm" onClick={runWorkflow} disabled={loading} className="h-8 font-bold bg-primary text-primary-foreground">
+              <Play size={14} fill="currentColor" className="mr-2" /> Execute
+            </Button>
+          </div>
+        </header>
 
-        {/* Canvas */}
-        <div style={{ flex: 1, background: '#f1f5f9' }} ref={reactFlowWrapper}>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onInit={setReactFlowInstance}
-            onDrop={onDrop}
-            onDragOver={onDragOver}
-            nodeTypes={nodeTypes}
-            fitView
+        {/* 3. Main Workspace */}
+        <main className="flex-1 relative bg-muted/10 min-h-0">
+          
+          {/* Component Palette (Refactored to fix ghost text) */}
+          <Card 
+            style={{ backgroundColor: '#0a0a0a' }}
+            className="absolute left-6 top-6 w-48 p-4 shadow-2xl border-border bg-[#0a0a0a] opacity-100 z-[5]"
           >
-            <Background color="#cbd5e1" gap={20} />
-            <Controls />
-          </ReactFlow>
-        </div>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-4">Core Nodes</p>
+            <div className="flex flex-col gap-2">
+              {[
+                { type: 'trigger', icon: CustomIcons.Trigger, label: 'Trigger', color: 'text-orange-500' },
+                { type: 'agent', icon: CustomIcons.Agent, label: 'Agent', color: 'text-sky-500' },
+                { type: 'task', icon: CustomIcons.Task, label: 'Task', color: 'text-emerald-500' },
+                { type: 'tool', icon: CustomIcons.Tool, label: 'Tool', color: 'text-indigo-500' },
+                { type: 'approval', icon: CustomIcons.Approval, label: 'Gate', color: 'text-amber-500' },
+              ].map(item => (
+                <div 
+                  key={item.type} draggable onDragStart={(e) => e.dataTransfer.setData('application/reactflow', item.type)}
+                  className="flex items-center gap-3 p-2.5 rounded-lg border border-border bg-background hover:border-primary transition-all cursor-grab active:cursor-grabbing shadow-sm"
+                >
+                  <item.icon size={18} className={item.color} />
+                  <span className="text-[12px] font-semibold">{item.label}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Canvas */}
+          <div className="absolute inset-0 z-0" ref={reactFlowWrapper}>
+            <ReactFlow
+              nodes={nodes} edges={edges}
+              onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}
+              onInit={setReactFlowInstance} onDrop={onDrop} onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
+              onNodeClick={(_: any, n: Node) => setSelectedNodeId(n.id)} onPaneClick={() => setSelectedNodeId(null)}
+              nodeTypes={nodeTypes}
+              fitView={false} // Disabled auto-zoom on node addition
+              minZoom={0.1}
+              maxZoom={1.5}
+              defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+            >
+              <Background color="#cbd5e1" gap={20} variant={Background.Dots} size={1} />
+              <Controls position="bottom-left" className="!bg-background !border-border !shadow-lg" />
+            </ReactFlow>
+          </div>
+
+          {executionId && <ExecutionTerminal executionId={executionId} onClose={() => { setExecutionId(null); setLoading(false); }} />}
+
+          {/* Configuration Drawer */}
+          {selectedNode && (
+            <Card className="absolute right-6 top-6 w-80 bottom-6 shadow-xl border-border bg-card z-[5] flex flex-col">
+              <div className="p-4 border-b border-border flex items-center justify-between">
+                <span className="font-bold text-sm uppercase tracking-wider">{selectedNode.type} Settings</span>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedNodeId(null)}>
+                  <ChevronRight size={16} />
+                </Button>
+              </div>
+              <ScrollArea className="flex-1 p-6">
+                <div className="space-y-6">
+                  {selectedNode.type === 'agent' && (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase">Agent Role</label>
+                        <Input value={selectedNode.data.role || ''} onChange={(e) => onNodeDataChange(selectedNode.id, e.target.value, 'role')} className="h-9 bg-background" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase">Goal</label>
+                        <textarea 
+                          className="w-full min-h-[100px] p-3 rounded-md border border-input bg-background text-sm outline-none focus:ring-1 focus:ring-primary"
+                          value={selectedNode.data.goal || ''} 
+                          onChange={(e) => onNodeDataChange(selectedNode.id, e.target.value, 'goal')} 
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </Card>
+          )}
+        </main>
       </div>
     </div>
   );
 };
 
 export default () => (
-  <ReactFlowProvider>
-    <App />
-  </ReactFlowProvider>
+  <TooltipProvider>
+    <ReactFlowProvider>
+      <App />
+    </ReactFlowProvider>
+  </TooltipProvider>
 );
